@@ -1,12 +1,13 @@
 const express = require('express');
 const cors = require('cors');
 const { MongoClient } = require('mongodb');
+const ObjectId = require('mongodb').ObjectId
 require('dotenv').config();
 
 
 
 const app = express();
-const port = 5000;
+const port = process.env.PORT || 5000;
 
 app.use(cors())
 app.use(express.json())
@@ -22,6 +23,29 @@ async function run() {
       await client.connect();
       const database = client.db("carDB");
       const serviceCollection = database.collection("services");
+
+
+      // get api 
+
+      app.get('/services',async(req,res)=>{
+        const cursor = serviceCollection.find({});
+        const services = await cursor.toArray();
+        res.send(services);
+
+      })
+
+
+      // GET single api 
+      app.get('/services/:id',async(req,res)=>{
+        const id= req.params.id;
+        const query ={_id: ObjectId(id)};
+        console.log('get id')
+        const result = await serviceCollection.findOne(query);
+        res.json(result);
+
+      })
+
+      
       
       // post api
 
@@ -34,6 +58,15 @@ async function run() {
         // res.send('post hitted')
       })
       
+
+      // delete api 
+
+      app.delete('/services/:id',async(req,res)=>{
+        const id= req.params.id;
+        const query ={_id: ObjectId(id)};
+        const result = await serviceCollection.deleteOne(query);
+        res.json(result);
+      })
       
     } 
     finally {
